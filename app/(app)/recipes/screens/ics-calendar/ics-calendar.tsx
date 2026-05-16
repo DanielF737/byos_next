@@ -40,22 +40,25 @@ function getFontClasses(
 	return { header: "text-base", body: "text-xs", padding: "p-1" };
 }
 
-// Computes the pixel width for the time column based on actual available column content width.
-// Time is always rendered at text-xs (~12px Inter). Thresholds are derived from estimated
-// character widths: "12:00 AM – 12:00 PM" ≈ 124px; "12:00 AM –" ≈ 68px.
-function getTimeColumnWidth(
+// Derives the time column layout from the actual available column pixel width.
+// Time is always text-xs (~12px Inter). Estimated widths:
+//   single-line "12:00 AM – 12:00 PM" ≈ 124px
+//   two-line "12:00 AM –" ≈ 68px  /  "12:00 PM" ≈ 52px
+// twoLine=true uses explicit vertical stacking rather than flex-wrap so that
+// the layout is identical in both Satori and Takumi renderers.
+function getTimeColumnConfig(
 	totalWidth: number,
 	colCount: number,
 	padding: string,
-): string {
+): { timeColWidth: string; twoLine: boolean } {
 	const paddingPx = padding === "p-2" ? 8 : 4;
 	const separatorsPx = 2 * Math.max(0, colCount - 1);
 	const colContentWidth =
 		Math.floor((totalWidth - separatorsPx) / colCount) - paddingPx * 2;
 
-	// If the column is wide enough to fit the full time range on one line (124px)
-	// and still leave at least 60px for the event title, use single-line width.
-	return colContentWidth >= 184 ? "124px" : "68px";
+	// Need ≥184px to fit 124px time + 60px minimum title on one line.
+	const twoLine = colContentWidth < 184;
+	return { timeColWidth: twoLine ? "68px" : "124px", twoLine };
 }
 
 export default function IcsCalendar({
@@ -79,7 +82,7 @@ export default function IcsCalendar({
 								columns.length,
 								fontSize,
 							);
-							const timeColWidth = getTimeColumnWidth(
+							const { timeColWidth, twoLine } = getTimeColumnConfig(
 								width,
 								columns.length,
 								padding,
@@ -133,32 +136,24 @@ export default function IcsCalendar({
 																		style={{
 																			width: timeColWidth,
 																			flexShrink: 0,
-																			flexWrap: "wrap",
-																			alignContent: "flex-start",
-																			columnGap: "3px",
 																		}}
 																	>
 																		{event.allDay ? (
-																			<span style={{ whiteSpace: "nowrap" }}>
-																				all day
+																			"all day"
+																		) : isRange && twoLine ? (
+																			<span
+																				style={{
+																					display: "flex",
+																					flexDirection: "column",
+																				}}
+																			>
+																				<span>{startStr} –</span>
+																				<span>{endStr}</span>
 																			</span>
 																		) : isRange ? (
-																			<>
-																				<span
-																					style={{ whiteSpace: "nowrap" }}
-																				>
-																					{startStr} –
-																				</span>
-																				<span
-																					style={{ whiteSpace: "nowrap" }}
-																				>
-																					{endStr}
-																				</span>
-																			</>
+																			`${startStr} – ${endStr}`
 																		) : (
-																			<span style={{ whiteSpace: "nowrap" }}>
-																				{startStr}
-																			</span>
+																			startStr
 																		)}
 																	</span>
 																	<span
