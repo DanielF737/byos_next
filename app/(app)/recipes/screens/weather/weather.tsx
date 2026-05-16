@@ -55,7 +55,10 @@ export default function Weather({
 	const isCompact = width < 600;
 
 	const iconSize = isNarrow ? 64 : isCompact ? 96 : 128;
-	const statIconSize = isNarrow ? 32 : isCompact ? 40 : 48;
+	const statIconSize = isNarrow ? 28 : isCompact ? 40 : 48;
+	const arrowSize = isNarrow ? 20 : isCompact ? 28 : 40;
+	const highLowClass = isNarrow ? "text-base" : isCompact ? "text-2xl" : "text-4xl";
+	const highLowMargin = isNarrow ? "mt-0.5" : isCompact ? "mt-1" : "mt-2";
 
 	const weatherStats = [
 		{
@@ -111,7 +114,7 @@ export default function Weather({
 		: isCompact
 			? "grid-cols-2 gap-2"
 			: "grid-cols-3 gap-4";
-	const statPadding = isNarrow ? "p-0.5" : "p-2";
+	const statPadding = isNarrow ? "p-0.5" : isCompact ? "p-1" : "p-2";
 	const statTextClass = isNarrow
 		? "text-sm"
 		: isCompact
@@ -130,17 +133,17 @@ export default function Weather({
 				<div
 					className={`flex flex-row ${headerPadding} items-center justify-between`}
 				>
-					<h2 className={`font-inter ${tempClass}`}>{temperature}°C</h2>
+					<div className="flex flex-col">
+						<h2 className={`font-inter ${tempClass}`}>{temperature}°C</h2>
+						<div className={`${highLowClass} ${highLowMargin} font-blockkie`}>
+							<div className="flex flex-row items-center">
+								<TempUp size={arrowSize} /> {highTemp}°C
+								<TempDown size={arrowSize} /> {lowTemp}°C
+							</div>
+						</div>
+					</div>
 					<div className="flex flex-col items-center justify-center">
 						{getWeatherIcon(description, iconSize)}
-						{!isCompact && (
-							<div className="text-4xl mt-4 font-blockkie">
-								<div className="flex flex-row items-center">
-									<TempUp /> {highTemp}°C
-									<TempDown /> {lowTemp}°C
-								</div>
-							</div>
-						)}
 					</div>
 				</div>
 				<div className={`${outerPadding} flex flex-col flex-1`}>

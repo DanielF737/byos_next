@@ -72,9 +72,7 @@ export function LocationSearchField({
 			if (res.ok) {
 				const data: OpenMeteoGeoResponse = await res.json();
 				const mapped: GeoResult[] = (data.results ?? []).map((r) => ({
-					displayName: [r.name, r.admin1, r.country]
-						.filter(Boolean)
-						.join(", "),
+					displayName: [r.name, r.admin1, r.country].filter(Boolean).join(", "),
 					latitude: r.latitude,
 					longitude: r.longitude,
 				}));
