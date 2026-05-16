@@ -57,7 +57,11 @@ export default function Weather({
 	const iconSize = isNarrow ? 64 : isCompact ? 96 : 128;
 	const statIconSize = isNarrow ? 28 : isCompact ? 40 : 48;
 	const arrowSize = isNarrow ? 20 : isCompact ? 28 : 40;
-	const highLowClass = isNarrow ? "text-base" : isCompact ? "text-2xl" : "text-4xl";
+	const highLowClass = isNarrow
+		? "text-base"
+		: isCompact
+			? "text-2xl"
+			: "text-4xl";
 	const highLowMargin = isNarrow ? "mt-0.5" : isCompact ? "mt-1" : "mt-2";
 
 	const weatherStats = [
