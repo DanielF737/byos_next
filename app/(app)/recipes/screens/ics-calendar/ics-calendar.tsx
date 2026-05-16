@@ -40,27 +40,6 @@ function getFontClasses(
 	return { header: "text-base", body: "text-xs", padding: "p-1" };
 }
 
-// Derives the time column layout from the actual available column pixel width.
-// Time is always text-xs (~12px Inter). Estimated widths:
-//   single-line "12:00 AM – 12:00 PM" ≈ 124px
-//   two-line "12:00 AM –" ≈ 68px  /  "12:00 PM" ≈ 52px
-// twoLine=true uses explicit vertical stacking rather than flex-wrap so that
-// the layout is identical in both Satori and Takumi renderers.
-function getTimeColumnConfig(
-	totalWidth: number,
-	colCount: number,
-	padding: string,
-): { timeColWidth: string; twoLine: boolean } {
-	const paddingPx = padding === "p-2" ? 8 : 4;
-	const separatorsPx = 2 * Math.max(0, colCount - 1);
-	const colContentWidth =
-		Math.floor((totalWidth - separatorsPx) / colCount) - paddingPx * 2;
-
-	// Need ≥184px to fit 124px time + 60px minimum title on one line.
-	const twoLine = colContentWidth < 184;
-	return { timeColWidth: twoLine ? "68px" : "124px", twoLine };
-}
-
 export default function IcsCalendar({
 	columns = [],
 	fetchedAt = "",
@@ -82,11 +61,6 @@ export default function IcsCalendar({
 								columns.length,
 								fontSize,
 							);
-							const { timeColWidth, twoLine } = getTimeColumnConfig(
-								width,
-								columns.length,
-								padding,
-							);
 							return (
 								<div key={col.name || i} className="flex-1 flex flex-row">
 									{i > 0 && (
@@ -104,69 +78,89 @@ export default function IcsCalendar({
 											) : col.dayGroups.length === 0 ? (
 												<div className={body}>No upcoming events</div>
 											) : (
-												col.dayGroups.map((group, gi) => (
-													<div
-														key={group.dateISO}
-														style={{ paddingTop: gi > 0 ? "8px" : "0px" }}
-													>
-														<div className={`font-inter ${body} leading-tight`}>
-															{group.dateLabel}
-														</div>
-														{group.events.map((event, ei) => {
-															const startStr = event.allDay
-																? null
-																: formatTime(event.start);
-															const endStr =
-																event.allDay ||
-																!event.end ||
-																event.start === event.end
-																	? null
-																	: formatTime(event.end);
-															const isRange =
-																endStr !== null && endStr !== startStr;
+												// Single grid for the entire column — all day groups
+												// share the same auto time column so titles align
+												// consistently across groups, not just within them.
+												<div
+													style={{
+														display: "grid",
+														gridTemplateColumns: "auto 1fr",
+														columnGap: "4px",
+														alignItems: "start",
+													}}
+												>
+													{col.dayGroups.flatMap((group, gi) => {
+														const dayLabel = (
+															<div
+																key={`label-${group.dateISO}`}
+																className={`font-inter ${body} leading-tight`}
+																style={{
+																	gridColumn: "1 / -1",
+																	paddingTop: gi > 0 ? "8px" : "0px",
+																}}
+															>
+																{group.dateLabel}
+															</div>
+														);
 
-															return (
-																<div
-																	key={ei}
-																	className="flex flex-row leading-tight"
-																	style={{ paddingTop: "2px" }}
-																>
+														const eventCells = group.events.flatMap(
+															(event, ei) => {
+																const startStr = event.allDay
+																	? null
+																	: formatTime(event.start);
+																const endStr =
+																	event.allDay ||
+																	!event.end ||
+																	event.start === event.end
+																		? null
+																		: formatTime(event.end);
+																const isRange =
+																	endStr !== null && endStr !== startStr;
+
+																return [
 																	<span
+																		key={`time-${group.dateISO}-${ei}`}
 																		className="text-xs leading-tight"
-																		style={{
-																			width: timeColWidth,
-																			flexShrink: 0,
-																		}}
+																		style={{ paddingTop: "2px" }}
 																	>
 																		{event.allDay ? (
-																			"all day"
-																		) : isRange && twoLine ? (
+																			<span style={{ whiteSpace: "nowrap" }}>
+																				all day
+																			</span>
+																		) : isRange ? (
 																			<span
 																				style={{
 																					display: "flex",
 																					flexDirection: "column",
 																				}}
 																			>
-																				<span>{startStr} –</span>
-																				<span>{endStr}</span>
+																				<span style={{ whiteSpace: "nowrap" }}>
+																					{startStr} –
+																				</span>
+																				<span style={{ whiteSpace: "nowrap" }}>
+																					{endStr}
+																				</span>
 																			</span>
-																		) : isRange ? (
-																			`${startStr} – ${endStr}`
 																		) : (
-																			startStr
+																			<span style={{ whiteSpace: "nowrap" }}>
+																				{startStr}
+																			</span>
 																		)}
-																	</span>
+																	</span>,
 																	<span
+																		key={`title-${group.dateISO}-${ei}`}
 																		className={`${body} leading-tight`}
-																		style={{ flex: 1, paddingLeft: "4px" }}
+																		style={{ paddingTop: "2px" }}
 																	>
 																		{event.title}
-																	</span>
-																</div>
-															);
-														})}
-													</div>
-												))
+																	</span>,
+																];
+															},
+														);
+
+														return [dayLabel, ...eventCells];
+													})}
+												</div>
 											)}
 										</div>
 									</div>

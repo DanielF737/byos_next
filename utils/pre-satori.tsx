@@ -50,6 +50,7 @@ export const PreSatori: React.FC<PreSatoriProps> = ({
 			if (getRendererType() === "satori") {
 				if (
 					style?.display !== "flex" &&
+					style?.display !== "grid" &&
 					style?.display !== "contents" &&
 					style?.display !== "none"
 				) {
