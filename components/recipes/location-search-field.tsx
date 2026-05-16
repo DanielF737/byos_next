@@ -1,7 +1,8 @@
 "use client";
 
 import { MapPin, Search, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import {
 	Command,
 	CommandEmpty,
@@ -57,51 +58,42 @@ export function LocationSearchField({
 	const [inputValue, setInputValue] = useState(displayName);
 	const [results, setResults] = useState<GeoResult[]>([]);
 	const [loading, setLoading] = useState(false);
-	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	useEffect(() => {
 		setInputValue(parseDisplayName(value));
 	}, [value]);
 
-	useEffect(() => {
-		return () => {
-			if (debounceRef.current) clearTimeout(debounceRef.current);
-		};
-	}, []);
+	const debouncedSearch = useDebounce(async (text: string) => {
+		setLoading(true);
+		try {
+			const res = await fetch(
+				`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(text.trim())}&count=10&language=en&format=json`,
+			);
+			if (res.ok) {
+				const data: OpenMeteoGeoResponse = await res.json();
+				const mapped: GeoResult[] = (data.results ?? []).map((r) => ({
+					displayName: [r.name, r.admin1, r.country]
+						.filter(Boolean)
+						.join(", "),
+					latitude: r.latitude,
+					longitude: r.longitude,
+				}));
+				setResults(mapped);
+				setOpen(true);
+			}
+		} finally {
+			setLoading(false);
+		}
+	}, 300);
 
 	const handleInput = (text: string) => {
 		setInputValue(text);
 		onChange(text);
-
-		if (debounceRef.current) clearTimeout(debounceRef.current);
-
 		if (text.trim().length < 2) {
 			setResults([]);
 			return;
 		}
-
-		debounceRef.current = setTimeout(async () => {
-			setLoading(true);
-			try {
-				const res = await fetch(
-					`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(text.trim())}&count=10&language=en&format=json`,
-				);
-				if (res.ok) {
-					const data: OpenMeteoGeoResponse = await res.json();
-					const mapped: GeoResult[] = (data.results ?? []).map((r) => ({
-						displayName: [r.name, r.admin1, r.country]
-							.filter(Boolean)
-							.join(", "),
-						latitude: r.latitude,
-						longitude: r.longitude,
-					}));
-					setResults(mapped);
-					setOpen(true);
-				}
-			} finally {
-				setLoading(false);
-			}
-		}, 300);
+		debouncedSearch(text);
 	};
 
 	const handleSelect = (result: GeoResult) => {
