@@ -7,25 +7,11 @@ interface IcsCalendarProps extends Partial<CalendarData> {
 }
 
 function formatTime(isoString: string): string {
-	return new Date(isoString)
-		.toLocaleTimeString("en-US", {
-			hour: "numeric",
-			minute: "2-digit",
-			hour12: true,
-		})
-		.replace(/ (AM|PM)$/, " $1");
-}
-
-function formatTimeRange(
-	startISO: string,
-	endISO: string,
-	allDay: boolean,
-): string {
-	if (allDay) return "all day";
-	if (!endISO || startISO === endISO) return formatTime(startISO);
-	const startStr = formatTime(startISO);
-	const endStr = formatTime(endISO);
-	return startStr === endStr ? startStr : `${startStr} – ${endStr}`;
+	return new Date(isoString).toLocaleTimeString("en-US", {
+		hour: "numeric",
+		minute: "2-digit",
+		hour12: true,
+	});
 }
 
 function getFontClasses(
@@ -54,21 +40,22 @@ function getFontClasses(
 	return { header: "text-base", body: "text-xs", padding: "p-1" };
 }
 
-function getTimeColumnWidth(colCount: number, fontSize: string): string {
-	// Time is always text-xs, but at large font sizes fewer columns fit comfortably
-	// so we start wrapping the time range earlier (at 2 cols instead of 3).
-	if (fontSize === "large") {
-		if (colCount <= 1) return "135px";
-		return "70px";
-	}
-	if (fontSize === "small") {
-		if (colCount <= 3) return "135px";
-		return "65px";
-	}
-	// medium
-	if (colCount <= 2) return "135px";
-	if (colCount === 3) return "70px";
-	return "65px";
+// Computes the pixel width for the time column based on actual available column content width.
+// Time is always rendered at text-xs (~12px Inter). Thresholds are derived from estimated
+// character widths: "12:00 AM – 12:00 PM" ≈ 124px; "12:00 AM –" ≈ 68px.
+function getTimeColumnWidth(
+	totalWidth: number,
+	colCount: number,
+	padding: string,
+): string {
+	const paddingPx = padding === "p-2" ? 8 : 4;
+	const separatorsPx = 2 * Math.max(0, colCount - 1);
+	const colContentWidth =
+		Math.floor((totalWidth - separatorsPx) / colCount) - paddingPx * 2;
+
+	// If the column is wide enough to fit the full time range on one line (124px)
+	// and still leave at least 60px for the event title, use single-line width.
+	return colContentWidth >= 184 ? "124px" : "68px";
 }
 
 export default function IcsCalendar({
@@ -91,6 +78,11 @@ export default function IcsCalendar({
 							const { header, body, padding } = getFontClasses(
 								columns.length,
 								fontSize,
+							);
+							const timeColWidth = getTimeColumnWidth(
+								width,
+								columns.length,
+								padding,
 							);
 							return (
 								<div key={col.name || i} className="flex-1 flex flex-row">
@@ -117,33 +109,67 @@ export default function IcsCalendar({
 														<div className={`font-inter ${body} leading-tight`}>
 															{group.dateLabel}
 														</div>
-														{group.events.map((event, ei) => (
-															<div
-																key={ei}
-																className="flex flex-row leading-tight"
-																style={{ paddingTop: "2px" }}
-															>
-																<span
-																	className="text-xs leading-tight"
-																	style={{
-																		width: getTimeColumnWidth(columns.length, fontSize),
-																		flexShrink: 0,
-																	}}
+														{group.events.map((event, ei) => {
+															const startStr = event.allDay
+																? null
+																: formatTime(event.start);
+															const endStr =
+																event.allDay ||
+																!event.end ||
+																event.start === event.end
+																	? null
+																	: formatTime(event.end);
+															const isRange =
+																endStr !== null && endStr !== startStr;
+
+															return (
+																<div
+																	key={ei}
+																	className="flex flex-row leading-tight"
+																	style={{ paddingTop: "2px" }}
 																>
-																	{formatTimeRange(
-																		event.start,
-																		event.end,
-																		event.allDay,
-																	)}
-																</span>
-																<span
-																	className={`${body} leading-tight`}
-																	style={{ flex: 1, paddingLeft: "4px" }}
-																>
-																	{event.title}
-																</span>
-															</div>
-														))}
+																	<span
+																		className="text-xs leading-tight"
+																		style={{
+																			width: timeColWidth,
+																			flexShrink: 0,
+																			flexWrap: "wrap",
+																			alignContent: "flex-start",
+																			columnGap: "3px",
+																		}}
+																	>
+																		{event.allDay ? (
+																			<span style={{ whiteSpace: "nowrap" }}>
+																				all day
+																			</span>
+																		) : isRange ? (
+																			<>
+																				<span
+																					style={{ whiteSpace: "nowrap" }}
+																				>
+																					{startStr} –
+																				</span>
+																				<span
+																					style={{ whiteSpace: "nowrap" }}
+																				>
+																					{endStr}
+																				</span>
+																			</>
+																		) : (
+																			<span style={{ whiteSpace: "nowrap" }}>
+																				{startStr}
+																			</span>
+																		)}
+																	</span>
+																	<span
+																		className={`${body} leading-tight`}
+																		style={{ flex: 1, paddingLeft: "4px" }}
+																	>
+																		{event.title}
+																	</span>
+																</div>
+															);
+														})}
 													</div>
 												))
 											)}
