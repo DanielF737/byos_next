@@ -7,11 +7,13 @@ interface IcsCalendarProps extends Partial<CalendarData> {
 }
 
 function formatTime(isoString: string): string {
-	return new Date(isoString).toLocaleTimeString("en-US", {
-		hour: "numeric",
-		minute: "2-digit",
-		hour12: true,
-	});
+	return new Date(isoString)
+		.toLocaleTimeString("en-US", {
+			hour: "numeric",
+			minute: "2-digit",
+			hour12: true,
+		})
+		.replace(/ (AM|PM)$/, " $1");
 }
 
 function formatTimeRange(
@@ -23,7 +25,7 @@ function formatTimeRange(
 	if (!endISO || startISO === endISO) return formatTime(startISO);
 	const startStr = formatTime(startISO);
 	const endStr = formatTime(endISO);
-	return startStr === endStr ? startStr : `${startStr} – ${endStr}`;
+	return startStr === endStr ? startStr : `${startStr} – ${endStr}`;
 }
 
 function getFontClasses(
@@ -50,6 +52,23 @@ function getFontClasses(
 	if (colCount === 3)
 		return { header: "text-lg", body: "text-xs", padding: "p-2" };
 	return { header: "text-base", body: "text-xs", padding: "p-1" };
+}
+
+function getTimeColumnWidth(colCount: number, fontSize: string): string {
+	// Time is always text-xs, but at large font sizes fewer columns fit comfortably
+	// so we start wrapping the time range earlier (at 2 cols instead of 3).
+	if (fontSize === "large") {
+		if (colCount <= 1) return "135px";
+		return "70px";
+	}
+	if (fontSize === "small") {
+		if (colCount <= 3) return "135px";
+		return "65px";
+	}
+	// medium
+	if (colCount <= 2) return "135px";
+	if (colCount === 3) return "70px";
+	return "65px";
 }
 
 export default function IcsCalendar({
@@ -104,7 +123,13 @@ export default function IcsCalendar({
 																className="flex flex-row leading-tight"
 																style={{ paddingTop: "2px" }}
 															>
-																<span className="text-xs leading-tight">
+																<span
+																	className="text-xs leading-tight"
+																	style={{
+																		width: getTimeColumnWidth(columns.length, fontSize),
+																		flexShrink: 0,
+																	}}
+																>
 																	{formatTimeRange(
 																		event.start,
 																		event.end,
@@ -113,7 +138,7 @@ export default function IcsCalendar({
 																</span>
 																<span
 																	className={`${body} leading-tight`}
-																	style={{ paddingLeft: "4px" }}
+																	style={{ flex: 1, paddingLeft: "4px" }}
 																>
 																	{event.title}
 																</span>
