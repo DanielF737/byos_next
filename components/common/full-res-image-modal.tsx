@@ -45,7 +45,7 @@ export function FullResImageModal({
           "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
           className,
         )}
-        aria-label="View at full resolution"
+        aria-label={`View ${label} at full resolution`}
       >
         <Expand className="h-3.5 w-3.5" />
         1:1
@@ -53,7 +53,7 @@ export function FullResImageModal({
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
-          className="max-w-none sm:max-w-none w-fit max-h-[calc(100vh-4rem)] max-w-[calc(100vw-2rem)] overflow-auto p-0"
+          className="sm:max-w-none w-fit max-h-[calc(100vh-4rem)] max-w-[calc(100vw-2rem)] overflow-auto p-0"
           showCloseButton={false}
           aria-describedby={undefined}
         >
