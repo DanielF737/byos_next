@@ -2,6 +2,7 @@
 
 import { Edit3, LayoutGrid, Plus, Trash2 } from "lucide-react";
 import { FormattedDate } from "@/components/common/formatted-date";
+import { FullResImageModal } from "@/components/common/full-res-image-modal";
 import { Button } from "@/components/ui/button";
 import { getLayoutById } from "@/lib/mixup/constants";
 import {
@@ -100,6 +101,13 @@ export function MixupList({
 									style={{ imageRendering: "pixelated" }}
 								/>
 							</picture>
+							<div className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100">
+								<FullResImageModal
+									imageUrl={`/api/bitmap/mixup/${mixup.id}.bmp`}
+									label={`${mixup.name} full resolution`}
+									className="bg-black/60 text-white hover:bg-black/80 hover:text-white"
+								/>
+							</div>
 						</div>
 
 						<div className="flex flex-1 flex-col gap-2 p-4">
