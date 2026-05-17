@@ -80,42 +80,44 @@ export function RecipePreviewStage({
 					))}
 				</div>
 
-				<div className="inline-flex items-center gap-0.5 rounded-lg border bg-background p-0.5">
-					<button
-						type="button"
-						onClick={() => handleOrientationChange(false)}
-						className={cn(
-							"inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors",
-							!isPortrait
-								? "bg-foreground text-background"
-								: "text-muted-foreground hover:text-foreground",
-						)}
-						aria-pressed={!isPortrait}
-					>
-						<Monitor className="h-3.5 w-3.5" />
-						Landscape
-					</button>
-					<button
-						type="button"
-						onClick={() => handleOrientationChange(true)}
-						className={cn(
-							"inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors",
-							isPortrait
-								? "bg-foreground text-background"
-								: "text-muted-foreground hover:text-foreground",
-						)}
-						aria-pressed={isPortrait}
-					>
-						<Smartphone className="h-3.5 w-3.5" />
-						Portrait
-					</button>
-				</div>
+				<div className="flex items-center gap-2">
+					<div className="inline-flex items-center gap-0.5 rounded-lg border bg-background p-0.5">
+						<button
+							type="button"
+							onClick={() => handleOrientationChange(false)}
+							className={cn(
+								"inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors",
+								!isPortrait
+									? "bg-foreground text-background"
+									: "text-muted-foreground hover:text-foreground",
+							)}
+							aria-pressed={!isPortrait}
+						>
+							<Monitor className="h-3.5 w-3.5" />
+							Landscape
+						</button>
+						<button
+							type="button"
+							onClick={() => handleOrientationChange(true)}
+							className={cn(
+								"inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors",
+								isPortrait
+									? "bg-foreground text-background"
+									: "text-muted-foreground hover:text-foreground",
+							)}
+							aria-pressed={isPortrait}
+						>
+							<Smartphone className="h-3.5 w-3.5" />
+							Portrait
+						</button>
+					</div>
 
-				<FullResImageModal
-					imageUrl={`/api/bitmap/${slug}.bmp`}
-					label={`${slug} full resolution`}
-					isPortrait={isPortrait}
-				/>
+					<FullResImageModal
+						imageUrl={`/api/bitmap/${slug}.bmp`}
+						label={`${slug} full resolution`}
+						isPortrait={isPortrait}
+					/>
+				</div>
 			</div>
 
 			{/* Stage */}
