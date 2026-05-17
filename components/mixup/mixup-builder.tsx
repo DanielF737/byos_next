@@ -3,6 +3,7 @@
 import { ArrowLeft, LayoutGrid, Save } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { DeviceFrame } from "@/components/common/device-frame";
+import { FullResImageModal } from "@/components/common/full-res-image-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -233,10 +234,18 @@ export function MixupBuilder({
 						<h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 							Live preview
 						</h3>
-						<span className="text-[11px] tabular-nums text-muted-foreground">
-							{currentLayout.slots.length} slots ·{" "}
-							<span className="capitalize">{layoutId.replace(/-/g, " ")}</span>
-						</span>
+						<div className="flex items-center gap-3">
+							<span className="text-[11px] tabular-nums text-muted-foreground">
+								{currentLayout.slots.length} slots ·{" "}
+								<span className="capitalize">{layoutId.replace(/-/g, " ")}</span>
+							</span>
+							{initialData?.id && (
+								<FullResImageModal
+									imageUrl={`/api/bitmap/mixup/${initialData.id}.bmp`}
+									label={name || "Mixup full resolution"}
+								/>
+							)}
+						</div>
 					</div>
 					<div className="flex flex-1 items-center justify-center bg-[radial-gradient(circle_at_50%_0%,theme(colors.muted/40),transparent_70%)] p-6">
 						<div className="w-full max-w-[640px]">
