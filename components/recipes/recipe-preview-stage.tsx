@@ -4,6 +4,7 @@ import { Monitor, Smartphone } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useState } from "react";
 import { DeviceFrame } from "@/components/common/device-frame";
+import { FullResImageModal } from "@/components/common/full-res-image-modal";
 import { cn } from "@/lib/utils";
 
 type FormatKey = "bmp" | "png" | "react";
@@ -109,6 +110,12 @@ export function RecipePreviewStage({
 						Portrait
 					</button>
 				</div>
+
+				<FullResImageModal
+					imageUrl={`/api/bitmap/${slug}.bmp`}
+					label={`${slug} full resolution`}
+					isPortrait={isPortrait}
+				/>
 			</div>
 
 			{/* Stage */}
