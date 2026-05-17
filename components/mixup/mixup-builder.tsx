@@ -237,7 +237,9 @@ export function MixupBuilder({
 						<div className="flex items-center gap-3">
 							<span className="text-[11px] tabular-nums text-muted-foreground">
 								{currentLayout.slots.length} slots ·{" "}
-								<span className="capitalize">{layoutId.replace(/-/g, " ")}</span>
+								<span className="capitalize">
+									{layoutId.replace(/-/g, " ")}
+								</span>
 							</span>
 							{initialData?.id && (
 								<FullResImageModal
