@@ -29,9 +29,10 @@ export function FullResImageModal({
 }: FullResImageModalProps) {
   const [open, setOpen] = useState(false);
 
+  const baseUrl = imageUrl.split("?")[0];
   const width = isPortrait ? DEFAULT_IMAGE_HEIGHT : DEFAULT_IMAGE_WIDTH;
   const height = isPortrait ? DEFAULT_IMAGE_WIDTH : DEFAULT_IMAGE_HEIGHT;
-  const src = `${imageUrl}?width=${width}&height=${height}`;
+  const src = `${baseUrl}?width=${width}&height=${height}`;
 
   return (
     <>
@@ -41,6 +42,7 @@ export function FullResImageModal({
         className={cn(
           "inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium",
           "text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+          "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
           className,
         )}
         aria-label="View at full resolution"
@@ -51,7 +53,8 @@ export function FullResImageModal({
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
-          className="max-w-none w-fit max-h-[calc(100vh-4rem)] max-w-[calc(100vw-2rem)] overflow-auto p-0"
+          className="max-w-none sm:max-w-none w-fit max-h-[calc(100vh-4rem)] max-w-[calc(100vw-2rem)] overflow-auto p-0"
+          showCloseButton={false}
           aria-describedby={undefined}
         >
           <DialogTitle className="sr-only">{label}</DialogTitle>
