@@ -3,6 +3,7 @@
 import { Pause, Play, SkipBack, SkipForward } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DeviceFrame } from "@/components/common/device-frame";
+import { FullResImageModal } from "@/components/common/full-res-image-modal";
 import { Button } from "@/components/ui/button";
 import {
 	DEFAULT_IMAGE_HEIGHT,
@@ -158,6 +159,12 @@ export function PlaylistLivePreview({
 						</>
 					)}
 				</div>
+				{!isEmpty && (
+					<FullResImageModal
+						imageUrl={`/api/bitmap/${active.screen_id}.bmp`}
+						label={active.label}
+					/>
+				)}
 				<div className="flex items-center gap-1">
 					<Button
 						variant="ghost"
