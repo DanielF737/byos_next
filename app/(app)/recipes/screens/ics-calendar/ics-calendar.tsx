@@ -61,6 +61,12 @@ export default function IcsCalendar({
 								columns.length,
 								fontSize,
 							);
+							const paddingPx = padding === "p-2" ? 8 : 4;
+							const separatorsPx = 2 * Math.max(0, columns.length - 1);
+							const colContentWidth =
+								Math.floor((width - separatorsPx) / columns.length) -
+								paddingPx * 2;
+							const singleLine = colContentWidth >= 200;
 							return (
 								<div key={col.name || i} className="flex-1 flex flex-row">
 									{i > 0 && (
@@ -127,7 +133,7 @@ export default function IcsCalendar({
 																			<span style={{ whiteSpace: "nowrap" }}>
 																				all day
 																			</span>
-																		) : isRange ? (
+																		) : isRange && !singleLine ? (
 																			<span
 																				style={{
 																					display: "flex",
@@ -140,6 +146,10 @@ export default function IcsCalendar({
 																				<span style={{ whiteSpace: "nowrap" }}>
 																					{endStr}
 																				</span>
+																			</span>
+																		) : isRange ? (
+																			<span style={{ whiteSpace: "nowrap" }}>
+																				{startStr} – {endStr}
 																			</span>
 																		) : (
 																			<span style={{ whiteSpace: "nowrap" }}>
