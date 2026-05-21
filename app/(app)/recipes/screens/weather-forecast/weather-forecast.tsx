@@ -132,7 +132,10 @@ export default function WeatherForecast({
 				{/* Today's stats bar */}
 				<div
 					className={`flex flex-row items-center ${rowGap} rounded-lg bg-gray-100`}
-					style={{ margin: `0 ${sideMargin}px 8px`, padding: todayStatPad }}
+					style={{
+						margin: `0 ${sideMargin}px ${sideMargin}px`,
+						padding: todayStatPad,
+					}}
 				>
 					<div className={`flex flex-row items-center ${rowGap}`}>
 						<WindIcon size={statIconSize} />
@@ -149,7 +152,10 @@ export default function WeatherForecast({
 				</div>
 
 				{/* Forecast rows */}
-				<div className={`${outerPad} flex flex-col flex-1 ${rowGap}`}>
+				<div
+					className={`${outerPad} flex flex-col flex-1 ${rowGap}`}
+					style={{ overflow: "hidden" }}
+				>
 					{forecast.map((day, i) => (
 						<div
 							key={i}
