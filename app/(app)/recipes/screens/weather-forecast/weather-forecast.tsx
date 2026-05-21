@@ -57,34 +57,29 @@ export default function WeatherForecast({
 
 	// Size tokens — numeric, used in style= to avoid Tailwind interpolation
 	const mainIconSize = isNarrow ? 48 : isCompact ? 72 : 96;
-	const rowIconSize = isNarrow ? 20 : isCompact ? 28 : 36;
-	const arrowSize = isNarrow ? 14 : isCompact ? 18 : 22;
+	const rowIconSize = isNarrow ? 20 : isCompact ? 30 : 36;
+	const arrowSize = isNarrow ? 14 : isCompact ? 20 : 22;
 	const statIconSize = isNarrow ? 16 : isCompact ? 20 : 24;
 	const sideMargin = isNarrow ? 4 : isCompact ? 8 : 12;
-	const dayLabelMinWidth = isNarrow ? 50 : isCompact ? 62 : 76;
-	const windMinWidth = isCompact ? 60 : 80;
-	const precipMinWidth = isNarrow ? 40 : isCompact ? 52 : 64;
+	const dayLabelMinWidth = isNarrow ? 52 : isCompact ? 72 : 88;
+	const windMinWidth = isCompact ? 80 : 100;
+	const precipMinWidth = isNarrow ? 44 : isCompact ? 60 : 72;
+
+	// Calendar-style single-line threshold: below 450px compact, stack wind+precip on row 2
+	const rowSingleLine = !isCompact || isNarrow || width >= 450;
 
 	// Precomputed Tailwind class strings — no interpolation
 	const tempClass = isNarrow ? "text-4xl" : isCompact ? "text-6xl" : "text-8xl";
-	const hiLoClass = isNarrow ? "text-xs" : isCompact ? "text-base" : "text-xl";
-	const descClass = isNarrow ? "text-xs" : isCompact ? "text-sm" : "text-base";
-	const dayLabelClass = isNarrow
-		? "text-xs"
-		: isCompact
-			? "text-sm"
-			: "text-base";
-	const rowTempClass = isNarrow
-		? "text-xs"
-		: isCompact
-			? "text-sm"
-			: "text-base";
-	const statClass = isNarrow ? "text-xs" : isCompact ? "text-sm" : "text-base";
+	const hiLoClass = isNarrow ? "text-xs" : isCompact ? "text-lg" : "text-xl";
+	const descClass = isNarrow ? "text-xs" : "text-base";
+	const dayLabelClass = isNarrow ? "text-xs" : "text-base";
+	const rowTempClass = isNarrow ? "text-xs" : "text-base";
+	const statClass = isNarrow ? "text-xs" : "text-base";
 	const footerClass = isNarrow
-		? "flex-col text-xs p-1"
+		? "flex-col text-sm p-1"
 		: isCompact
-			? "flex-col text-sm p-2"
-			: "flex-row justify-between text-sm p-2";
+			? "flex-col text-base p-2"
+			: "flex-row justify-between text-base p-2";
 	const headerPad = isNarrow ? "p-1" : "p-3";
 	const outerPad = isNarrow
 		? "px-1 pb-1"
@@ -159,54 +154,76 @@ export default function WeatherForecast({
 					{forecast.map((day, i) => (
 						<div
 							key={i}
-							className={`flex flex-row items-center w-full ${rowPad} rounded-lg`}
+							className={`flex flex-col w-full ${rowPad} rounded-lg`}
 							style={{ border: "1px solid #d1d5db" }}
 						>
-							<span
-								className={`${dayLabelClass} font-medium`}
-								style={{ minWidth: dayLabelMinWidth }}
-							>
-								{day.dateLabel}
-							</span>
+							{/* Top line: day label + icon + hi/lo temps */}
+							<div className={`flex flex-row items-center ${rowGap}`}>
+								<span
+									className={`${dayLabelClass} font-medium`}
+									style={{ minWidth: dayLabelMinWidth }}
+								>
+									{day.dateLabel}
+								</span>
 
-							<span style={{ marginLeft: 4 }}>
-								{getWeatherIcon(day.description, rowIconSize)}
-							</span>
+								<span style={{ marginLeft: 4 }}>
+									{getWeatherIcon(day.description, rowIconSize)}
+								</span>
 
-							<div
-								className={`flex flex-row items-center flex-1 ${rowGap}`}
-								style={{ marginLeft: 4 }}
-							>
-								<TempUp size={arrowSize} />
-								<span className={rowTempClass}>{day.highTemp}°</span>
-								<TempDown size={arrowSize} />
-								<span className={rowTempClass}>{day.lowTemp}°</span>
+								<div
+									className={`flex flex-row items-center flex-1 ${rowGap}`}
+									style={{ marginLeft: 4 }}
+								>
+									<TempUp size={arrowSize} />
+									<span className={rowTempClass}>{day.highTemp}°</span>
+									<TempDown size={arrowSize} />
+									<span className={rowTempClass}>{day.lowTemp}°</span>
+								</div>
+
+								{rowSingleLine && !isNarrow && (
+									<div
+										className={`flex flex-row items-center ${rowGap}`}
+										style={{ marginLeft: 8, minWidth: windMinWidth }}
+									>
+										<WindIcon size={statIconSize} />
+										<span className={rowTempClass}>{day.windSpeedMax} km/h</span>
+									</div>
+								)}
+
+								{rowSingleLine && (
+									<div
+										className={`flex flex-row items-center ${rowGap}`}
+										style={{ marginLeft: 4, minWidth: precipMinWidth }}
+									>
+										<PrecipitationIcon size={statIconSize} />
+										<span className={rowTempClass}>{day.precipitation} mm</span>
+									</div>
+								)}
 							</div>
 
-							{!isNarrow && (
+							{/* Second line for wind + precip when compact and tight (< 450px) */}
+							{!rowSingleLine && (
 								<div
-									className={`flex flex-row items-center ${rowGap}`}
-									style={{ marginLeft: 8, minWidth: windMinWidth }}
+									className="flex flex-row items-center gap-2"
+									style={{ marginTop: 2, marginLeft: 4 }}
 								>
 									<WindIcon size={statIconSize} />
 									<span className={rowTempClass}>{day.windSpeedMax} km/h</span>
+									<div
+										className="bg-gray-400"
+										style={{ width: 1, alignSelf: "stretch" }}
+									/>
+									<PrecipitationIcon size={statIconSize} />
+									<span className={rowTempClass}>{day.precipitation} mm</span>
 								</div>
 							)}
-
-							<div
-								className={`flex flex-row items-center ${rowGap}`}
-								style={{ marginLeft: 4, minWidth: precipMinWidth }}
-							>
-								<PrecipitationIcon size={statIconSize} />
-								<span className={rowTempClass}>{day.precipitation} mm</span>
-							</div>
 						</div>
 					))}
 				</div>
 
 				{/* Footer */}
 				<div
-					className={`flex ${footerClass} items-center text-white rounded-lg bg-gray-500`}
+					className={`flex ${footerClass} items-center text-white font-medium rounded-lg bg-gray-500`}
 					style={{ margin: `0 ${sideMargin}px ${sideMargin}px` }}
 				>
 					<span>{location}</span>
