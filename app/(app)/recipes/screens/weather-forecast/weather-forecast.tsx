@@ -58,7 +58,7 @@ export default function WeatherForecast({
 	// Size tokens — numeric, used in style= to avoid Tailwind interpolation
 	const mainIconSize = isNarrow ? 48 : isCompact ? 72 : 96;
 	const rowIconSize = isNarrow ? 20 : isCompact ? 30 : 36;
-	const arrowSize = isNarrow ? 14 : isCompact ? 20 : 22;
+	const arrowSize = isNarrow ? 16 : isCompact ? 20 : 22;
 	const statIconSize = isNarrow ? 16 : isCompact ? 20 : 24;
 	const sideMargin = isNarrow ? 4 : isCompact ? 8 : 12;
 	const dayLabelMinWidth = isNarrow ? 46 : isCompact ? 64 : 76;
@@ -71,15 +71,15 @@ export default function WeatherForecast({
 	// Precomputed Tailwind class strings — no interpolation
 	const tempClass = isNarrow ? "text-4xl" : isCompact ? "text-6xl" : "text-8xl";
 	const hiLoClass = isNarrow ? "text-sm" : isCompact ? "text-lg" : "text-xl";
-	const descClass = isNarrow ? "text-sm" : "text-base";
-	const dayLabelClass = isNarrow ? "text-xs" : "text-sm";
-	const rowTempClass = isNarrow ? "text-sm" : "text-lg";
-	const statClass = isNarrow ? "text-sm" : "text-base";
+	const descClass = isNarrow ? "text-sm font-inter" : "text-base font-inter";
+	const dayLabelClass = isNarrow ? "text-xs font-inter" : "text-sm font-inter";
+	const rowTempClass = isNarrow ? "text-base font-inter" : "text-xl font-inter";
+	const statClass = isNarrow ? "text-sm font-inter" : "text-base font-inter";
 	const footerClass = isNarrow
-		? "flex-col text-sm p-1"
+		? "flex-col text-sm font-inter p-1"
 		: isCompact
-			? "flex-col text-base p-2"
-			: "flex-row justify-between text-base p-2";
+			? "flex-col text-base font-inter p-2"
+			: "flex-row justify-between text-base font-inter p-2";
 	const headerPad = isNarrow ? "p-1" : "p-3";
 	const outerPad = isNarrow
 		? "px-1 pb-1"
@@ -111,9 +111,9 @@ export default function WeatherForecast({
 						</span>
 						<div className={`${hiLoClass} flex flex-row items-center mt-0.5`}>
 							<TempUp size={arrowSize} />
-							<span className="ml-0.5">{highTemp}°</span>
+							<span className="ml-0.5 font-inter">{highTemp}°</span>
 							<TempDown size={arrowSize} />
-							<span className="ml-0.5">{lowTemp}°</span>
+							<span className="ml-0.5 font-inter">{lowTemp}°</span>
 						</div>
 						<span className={`${descClass} mt-0.5 text-gray-600`}>
 							{description}
@@ -148,7 +148,7 @@ export default function WeatherForecast({
 
 				{/* Forecast rows */}
 				<div
-					className={`${outerPad} flex flex-col flex-1 ${rowGap}`}
+					className={`${outerPad} flex flex-col flex-1 justify-between gap-1`}
 					style={{ overflow: "hidden" }}
 				>
 					{forecast.map((day, i) => (
@@ -160,7 +160,7 @@ export default function WeatherForecast({
 							{/* Top line: day label + icon + hi/lo temps */}
 							<div className={`flex flex-row items-center ${rowGap}`}>
 								<span
-									className={`${dayLabelClass} font-medium`}
+									className={dayLabelClass}
 									style={{ minWidth: dayLabelMinWidth }}
 								>
 									{day.dateLabel}
@@ -225,11 +225,11 @@ export default function WeatherForecast({
 
 				{/* Footer */}
 				<div
-					className={`flex ${footerClass} items-center text-white font-bold rounded-lg bg-gray-500`}
+					className={`flex ${footerClass} items-center text-white rounded-lg bg-gray-500`}
 					style={{ margin: `0 ${sideMargin}px ${sideMargin}px` }}
 				>
-					<span>{location}</span>
-					{lastUpdated && <span>Updated: {lastUpdated}</span>}
+					<span className="font-inter">{location}</span>
+					{lastUpdated && <span className="font-inter">Updated: {lastUpdated}</span>}
 				</div>
 			</div>
 		</PreSatori>
