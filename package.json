@@ -12,6 +12,7 @@
 		"start": "next start",
 		"lint": "biome check ./app ./components ./lib ./utils ./hooks",
 		"lint:fix": "biome check --write --unsafe ./app ./components ./lib ./utils ./hooks",
+		"test": "vitest run",
 		"typecheck": "tsc --noEmit",
 		"format": "biome format --write ./app ./components ./lib ./utils ./hooks",
 		"release:major": "pnpm version major -m 'chore(release): %s' && git push --follow-tags",
@@ -89,7 +90,8 @@
 		"kysely-codegen": "^0.20.0",
 		"shadcn": "^4.4.0",
 		"tailwindcss": "^4.2.4",
-		"typescript": "^6.0.3"
+		"typescript": "^6.0.3",
+		"vitest": "^4.1.6"
 	},
 	"pnpm": {
 		"onlyBuiltDependencies": [

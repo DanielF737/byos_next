@@ -111,16 +111,20 @@ export function groupEventsByDay(events: CalendarEvent[]): DayGroup[] {
 		map.get(iso)?.push(event);
 	}
 
+	const currentYear = new Date().getFullYear();
 	const result: DayGroup[] = [];
 	for (const [iso, evts] of map) {
 		const d = new Date(`${iso}T00:00:00Z`);
+		const eventYear = Number(iso.slice(0, 4));
+		const options: Intl.DateTimeFormatOptions = {
+			weekday: "short",
+			month: "short",
+			day: "numeric",
+			...(eventYear !== currentYear ? { year: "numeric" } : {}),
+		};
 		result.push({
 			dateISO: iso,
-			dateLabel: d.toLocaleDateString("en-US", {
-				weekday: "short",
-				month: "short",
-				day: "numeric",
-			}),
+			dateLabel: d.toLocaleDateString("en-US", options),
 			events: evts,
 		});
 	}
