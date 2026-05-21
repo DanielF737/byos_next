@@ -76,7 +76,11 @@ export function roundOneDecimal(n: number): string {
 
 export function formatTime(timeString: string): string {
 	const date = new Date(timeString);
-	return date.toLocaleString("en-US", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" });
+	return date.toLocaleString("en-US", {
+		hour: "2-digit",
+		minute: "2-digit",
+		timeZone: "UTC",
+	});
 }
 
 export function formatDateTime(dateString: string): string {
