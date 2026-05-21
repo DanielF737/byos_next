@@ -51,13 +51,23 @@ export function parseLocationParam(location: string): {
 }
 
 export function formatDayLabel(dateStr: string): string {
-	const today = new Date().toISOString().slice(0, 10);
-	if (dateStr === today) return "Today";
+	const now = new Date();
+	const today = [
+		now.getFullYear(),
+		String(now.getMonth() + 1).padStart(2, "0"),
+		String(now.getDate()).padStart(2, "0"),
+	].join("-");
 	const date = new Date(`${dateStr}T12:00:00Z`);
-	return date.toLocaleDateString("en-US", {
+	const dayNum = date.toLocaleDateString("en-US", {
+		day: "numeric",
+		timeZone: "UTC",
+	});
+	if (dateStr === today) return `Today ${dayNum}`;
+	const weekday = date.toLocaleDateString("en-US", {
 		weekday: "short",
 		timeZone: "UTC",
 	});
+	return `${weekday} ${dayNum}`;
 }
 
 export function clampForecastDays(n: number | string | undefined): number {

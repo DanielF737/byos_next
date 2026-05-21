@@ -77,14 +77,14 @@ describe("formatDayLabel", () => {
 		vi.useRealTimers();
 	});
 
-	it("returns 'Today' for today's date", () => {
-		expect(formatDayLabel("2026-05-21")).toBe("Today");
+	it("returns 'Today' with the numeric date for today", () => {
+		expect(formatDayLabel("2026-05-21")).toBe("Today 21");
 	});
-	it("returns short weekday for tomorrow", () => {
-		expect(formatDayLabel("2026-05-22")).toBe("Fri");
+	it("returns short weekday with numeric date for tomorrow", () => {
+		expect(formatDayLabel("2026-05-22")).toBe("Fri 22");
 	});
-	it("returns short weekday for a future date", () => {
-		expect(formatDayLabel("2026-05-25")).toBe("Mon");
+	it("returns short weekday with numeric date for a future date", () => {
+		expect(formatDayLabel("2026-05-25")).toBe("Mon 25");
 	});
 });
 
