@@ -114,14 +114,14 @@ async function fetchForecastData(
 
 		const { current, daily } = data;
 
-		const forecast: ForecastDay[] = daily.time.map((dateStr, i) => ({
+		const forecast: ForecastDay[] = daily.time.slice(1).map((dateStr, i) => ({
 			dateLabel: formatDayLabel(dateStr),
-			weatherCode: daily.weather_code[i],
-			highTemp: roundNum(daily.temperature_2m_max[i]),
-			lowTemp: roundNum(daily.temperature_2m_min[i]),
-			windSpeedMax: roundNum(daily.wind_speed_10m_max[i]),
-			precipitation: roundOneDecimal(daily.precipitation_sum[i]),
-			description: getWeatherDescription(daily.weather_code[i]),
+			weatherCode: daily.weather_code[i + 1],
+			highTemp: roundNum(daily.temperature_2m_max[i + 1]),
+			lowTemp: roundNum(daily.temperature_2m_min[i + 1]),
+			windSpeedMax: roundNum(daily.wind_speed_10m_max[i + 1]),
+			precipitation: roundOneDecimal(daily.precipitation_sum[i + 1]),
+			description: getWeatherDescription(daily.weather_code[i + 1]),
 		}));
 
 		return {
