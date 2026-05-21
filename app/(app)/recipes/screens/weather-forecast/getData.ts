@@ -194,7 +194,11 @@ export default async function getData(
 			locationName,
 			forecastDays,
 		);
-	} catch {
+	} catch (error) {
+		const msg = error instanceof Error ? error.message : String(error);
+		if (msg !== "Empty or invalid data - skip caching") {
+			console.error("Unexpected error in getCachedForecastData:", error);
+		}
 		const data = await fetchForecastData(
 			latitude ?? 0,
 			longitude ?? 0,
