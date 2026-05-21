@@ -71,7 +71,10 @@ export default function WeatherForecast({
 	// Precomputed Tailwind class strings — no interpolation
 	const tempClass = isNarrow ? "text-4xl" : isCompact ? "text-6xl" : "text-8xl";
 	const hiLoClass = isNarrow ? "text-sm" : isCompact ? "text-lg" : "text-xl";
-	const descClass = isNarrow ? "text-sm font-inter" : "text-base font-inter";
+	const descClass = isNarrow
+		? "text-sm font-medium font-inter"
+		: "text-base font-inter";
+	const updatedClass = isNarrow ? "text-xs font-inter" : "text-sm font-inter";
 	const dayLabelClass = isNarrow ? "text-xs font-inter" : "text-sm font-inter";
 	const rowTempClass = isNarrow ? "text-base font-inter" : "text-xl font-inter";
 	const statClass = isNarrow ? "text-sm font-inter" : "text-base font-inter";
@@ -154,8 +157,8 @@ export default function WeatherForecast({
 					{forecast.map((day, i) => (
 						<div
 							key={i}
-							className={`flex flex-col w-full ${rowPad} rounded-lg`}
-							style={{ border: "1px solid #d1d5db" }}
+							className={`flex flex-col w-full ${rowPad}`}
+							style={{ borderTop: "1px solid #d1d5db" }}
 						>
 							{/* Top line: day label + icon + hi/lo temps */}
 							<div className={`flex flex-row items-center ${rowGap}`}>
@@ -228,9 +231,20 @@ export default function WeatherForecast({
 					className={`flex ${footerClass} items-center text-white rounded-lg bg-gray-500`}
 					style={{ margin: `0 ${sideMargin}px ${sideMargin}px` }}
 				>
-					<span className="font-inter">{location}</span>
+					<span
+						className="font-inter"
+						style={{
+							overflow: "hidden",
+							textOverflow: "ellipsis",
+							whiteSpace: "nowrap",
+							flex: 1,
+							minWidth: 0,
+						}}
+					>
+						{location}
+					</span>
 					{lastUpdated && (
-						<span className="font-inter">Updated: {lastUpdated}</span>
+						<span className={updatedClass}>Updated: {lastUpdated}</span>
 					)}
 				</div>
 			</div>
