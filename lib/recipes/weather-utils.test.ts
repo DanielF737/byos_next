@@ -120,14 +120,14 @@ describe("isPrerendError", () => {
 
 describe("formatTime", () => {
 	it("formats an ISO time string to HH:MM AM/PM", () => {
-		const result = formatTime("2026-05-21T14:30:00");
-		expect(result).toMatch(/04:30 AM/i);
+		const result = formatTime("2026-05-21T14:30:00Z");
+		expect(result).toMatch(/02:30 PM/i);
 	});
 });
 
 describe("formatDateTime", () => {
 	it("includes month, day, hour, minute", () => {
-		const result = formatDateTime("2026-05-21T14:30:00");
+		const result = formatDateTime("2026-05-21T14:30:00Z");
 		expect(result).toMatch(/May/);
 		expect(result).toMatch(/21/);
 	});
