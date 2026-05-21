@@ -78,13 +78,13 @@ describe("formatDayLabel", () => {
 	});
 
 	it("returns 'Today' with the numeric date for today", () => {
-		expect(formatDayLabel("2026-05-21")).toBe("Today 21");
+		expect(formatDayLabel("2026-05-21")).toBe("Today May 21");
 	});
 	it("returns short weekday with numeric date for tomorrow", () => {
-		expect(formatDayLabel("2026-05-22")).toBe("Fri 22");
+		expect(formatDayLabel("2026-05-22")).toBe("Fri May 22");
 	});
 	it("returns short weekday with numeric date for a future date", () => {
-		expect(formatDayLabel("2026-05-25")).toBe("Mon 25");
+		expect(formatDayLabel("2026-05-25")).toBe("Mon May 25");
 	});
 });
 

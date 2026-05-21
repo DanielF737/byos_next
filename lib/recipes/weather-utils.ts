@@ -58,16 +58,20 @@ export function formatDayLabel(dateStr: string): string {
 		String(now.getDate()).padStart(2, "0"),
 	].join("-");
 	const date = new Date(`${dateStr}T12:00:00Z`);
+	const month = date.toLocaleDateString("en-US", {
+		month: "short",
+		timeZone: "UTC",
+	});
 	const dayNum = date.toLocaleDateString("en-US", {
 		day: "numeric",
 		timeZone: "UTC",
 	});
-	if (dateStr === today) return `Today ${dayNum}`;
+	if (dateStr === today) return `Today ${month} ${dayNum}`;
 	const weekday = date.toLocaleDateString("en-US", {
 		weekday: "short",
 		timeZone: "UTC",
 	});
-	return `${weekday} ${dayNum}`;
+	return `${weekday} ${month} ${dayNum}`;
 }
 
 export function clampForecastDays(n: number | string | undefined): number {
