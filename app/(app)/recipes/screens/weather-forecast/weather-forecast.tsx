@@ -1,5 +1,4 @@
 import { PreSatori } from "@/utils/pre-satori";
-import type { ForecastDay } from "./getData";
 import {
 	CloudIcon,
 	FogIcon,
@@ -12,6 +11,7 @@ import {
 	ThunderIcon,
 	WindIcon,
 } from "../weather/icons";
+import type { ForecastDay } from "./getData";
 
 interface WeatherForecastProps {
 	temperature?: string;
