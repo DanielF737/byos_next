@@ -152,6 +152,43 @@
 		"version": "0.1.0",
 		"category": "display-components"
 	},
+	"weather-forecast": {
+		"title": "Weather Forecast (Multi-Day)",
+		"published": true,
+		"createdAt": "2026-05-21T00:00:00Z",
+		"updatedAt": "2026-05-21T00:00:00Z",
+		"description": "Current conditions plus an n-day forecast with temp range, wind speed, and precipitation. Powered by Open-Meteo API.",
+		"componentPath": "./screens/weather-forecast",
+		"hasDataFetch": true,
+		"props": {
+			"temperature": "Loading...",
+			"description": "Loading...",
+			"location": "Loading..."
+		},
+		"params": {
+			"location": {
+				"type": "location",
+				"label": "Location",
+				"description": "Search and select your city or suburb",
+				"default": "San Francisco"
+			},
+			"forecastDays": {
+				"type": "number",
+				"label": "Forecast days",
+				"description": "Number of forecast days to display (3–10)",
+				"default": 5,
+				"placeholder": "5"
+			}
+		},
+		"tags": ["tailwind", "weather", "api", "live-data", "configurable"],
+		"author": {
+			"name": "Daniel Ferraro",
+			"github": "DanielF737"
+		},
+		"renderSettings": {},
+		"version": "0.1.0",
+		"category": "display-components"
+	},
 	"responsive-example": {
 		"title": "Responsive Example",
 		"published": true,
