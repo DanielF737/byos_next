@@ -229,7 +229,9 @@ export default function WeatherForecast({
 					style={{ margin: `0 ${sideMargin}px ${sideMargin}px` }}
 				>
 					<span className="font-inter">{location}</span>
-					{lastUpdated && <span className="font-inter">Updated: {lastUpdated}</span>}
+					{lastUpdated && (
+						<span className="font-inter">Updated: {lastUpdated}</span>
+					)}
 				</div>
 			</div>
 		</PreSatori>
