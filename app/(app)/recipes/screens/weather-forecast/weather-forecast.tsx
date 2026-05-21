@@ -61,7 +61,7 @@ export default function WeatherForecast({
 	const arrowSize = isNarrow ? 14 : isCompact ? 18 : 22;
 	const statIconSize = isNarrow ? 16 : isCompact ? 20 : 24;
 	const sideMargin = isNarrow ? 4 : isCompact ? 8 : 12;
-	const dayLabelMinWidth = isNarrow ? 30 : isCompact ? 36 : 48;
+	const dayLabelMinWidth = isNarrow ? 50 : isCompact ? 62 : 76;
 	const windMinWidth = isCompact ? 60 : 80;
 	const precipMinWidth = isNarrow ? 40 : isCompact ? 52 : 64;
 
