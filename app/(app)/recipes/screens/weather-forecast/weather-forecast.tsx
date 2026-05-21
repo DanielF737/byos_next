@@ -66,7 +66,7 @@ export default function WeatherForecast({
 	const precipMinWidth = isNarrow ? 44 : isCompact ? 60 : 72;
 
 	// Calendar-style single-line threshold: below 450px compact, stack wind+precip on row 2
-	const rowSingleLine = !isCompact || isNarrow || width >= 450;
+	const rowSingleLine = !isCompact || width >= 450;
 
 	// Precomputed Tailwind class strings — no interpolation
 	const tempClass = isNarrow ? "text-4xl" : isCompact ? "text-6xl" : "text-8xl";
@@ -166,7 +166,7 @@ export default function WeatherForecast({
 									{day.dateLabel}
 								</span>
 
-								<span style={{ marginLeft: 4 }}>
+								<span style={{ marginLeft: 4, flexShrink: 0 }}>
 									{getWeatherIcon(day.description, rowIconSize)}
 								</span>
 
@@ -206,7 +206,7 @@ export default function WeatherForecast({
 							{/* Second line for wind + precip when compact and tight (< 450px) */}
 							{!rowSingleLine && (
 								<div
-									className="flex flex-row items-center gap-2"
+									className={`flex flex-row items-center ${rowGap}`}
 									style={{ marginTop: 2, marginLeft: 4 }}
 								>
 									<WindIcon size={statIconSize} />
