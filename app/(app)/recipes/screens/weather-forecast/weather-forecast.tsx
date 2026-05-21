@@ -61,7 +61,7 @@ export default function WeatherForecast({
 	const arrowSize = isNarrow ? 14 : isCompact ? 20 : 22;
 	const statIconSize = isNarrow ? 16 : isCompact ? 20 : 24;
 	const sideMargin = isNarrow ? 4 : isCompact ? 8 : 12;
-	const dayLabelMinWidth = isNarrow ? 52 : isCompact ? 72 : 88;
+	const dayLabelMinWidth = isNarrow ? 46 : isCompact ? 64 : 76;
 	const windMinWidth = isCompact ? 80 : 100;
 	const precipMinWidth = isNarrow ? 44 : isCompact ? 60 : 72;
 
@@ -70,11 +70,11 @@ export default function WeatherForecast({
 
 	// Precomputed Tailwind class strings — no interpolation
 	const tempClass = isNarrow ? "text-4xl" : isCompact ? "text-6xl" : "text-8xl";
-	const hiLoClass = isNarrow ? "text-xs" : isCompact ? "text-lg" : "text-xl";
-	const descClass = isNarrow ? "text-xs" : "text-base";
-	const dayLabelClass = isNarrow ? "text-xs" : "text-base";
-	const rowTempClass = isNarrow ? "text-xs" : "text-base";
-	const statClass = isNarrow ? "text-xs" : "text-base";
+	const hiLoClass = isNarrow ? "text-sm" : isCompact ? "text-lg" : "text-xl";
+	const descClass = isNarrow ? "text-sm" : "text-base";
+	const dayLabelClass = isNarrow ? "text-xs" : "text-sm";
+	const rowTempClass = isNarrow ? "text-sm" : "text-lg";
+	const statClass = isNarrow ? "text-sm" : "text-base";
 	const footerClass = isNarrow
 		? "flex-col text-sm p-1"
 		: isCompact
@@ -186,7 +186,9 @@ export default function WeatherForecast({
 										style={{ marginLeft: 8, minWidth: windMinWidth }}
 									>
 										<WindIcon size={statIconSize} />
-										<span className={rowTempClass}>{day.windSpeedMax} km/h</span>
+										<span className={rowTempClass}>
+											{day.windSpeedMax} km/h
+										</span>
 									</div>
 								)}
 
@@ -223,7 +225,7 @@ export default function WeatherForecast({
 
 				{/* Footer */}
 				<div
-					className={`flex ${footerClass} items-center text-white font-medium rounded-lg bg-gray-500`}
+					className={`flex ${footerClass} items-center text-white font-bold rounded-lg bg-gray-500`}
 					style={{ margin: `0 ${sideMargin}px ${sideMargin}px` }}
 				>
 					<span>{location}</span>
