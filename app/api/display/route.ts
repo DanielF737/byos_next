@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/database/db";
 import { checkDbConnection } from "@/lib/database/utils";
-import { getLatestFirmware, isUpdateAvailable } from "@/lib/firmware";
+
 import { logError, logInfo } from "@/lib/logger";
 import { DeviceDisplayMode } from "@/lib/mixup/constants";
 import {
@@ -189,30 +189,9 @@ export async function GET(request: Request) {
 		};
 		logInfo("Display request successful", { source: "api/display", metadata });
 
-		// Check for firmware updates
-		const latestFirmware = await getLatestFirmware();
 		const firmwareExtra: Record<string, unknown> = {
-			// Tell the firmware how to rotate the panel. The TRMNL panel is
-			// portrait-native, so a landscape orientation needs a 90° rotation.
-			// 0 = portrait (no rotation), 1 = landscape (90°).
 			image_rotate: orientation === "landscape" ? 1 : 0,
 		};
-
-		if (
-			latestFirmware &&
-			isUpdateAvailable(device.firmware_version, latestFirmware.version)
-		) {
-			firmwareExtra.update_firmware = true;
-			firmwareExtra.firmware_url = latestFirmware.downloadUrl;
-			logInfo("Firmware update available", {
-				source: "api/display",
-				metadata: {
-					deviceId: device.friendly_id,
-					currentVersion: device.firmware_version,
-					latestVersion: latestFirmware.version,
-				},
-			});
-		}
 
 		return buildDisplayResponse(
 			imageUrl,
