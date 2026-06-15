@@ -338,6 +338,12 @@
 				"description": "Max instances of any single recurring event. 0 or blank = no limit. e.g. 3 to show only the next 3 instances of a weekly meeting.",
 				"default": 0,
 				"placeholder": "0"
+			},
+			"timeZone": {
+				"type": "timezone",
+				"label": "Time zone",
+				"description": "Day grouping and times are shown in this zone. Leave as server default to use the server's zone.",
+				"default": ""
 			}
 		},
 		"tags": [

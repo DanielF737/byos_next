@@ -3,6 +3,8 @@
 import { AlertCircle, Check, Save } from "lucide-react";
 import type { ChangeEvent } from "react";
 import { useMemo, useState, useTransition } from "react";
+import { LocationSearchField } from "@/components/recipes/location-search-field";
+import { TimeZoneSelectField } from "@/components/recipes/timezone-select-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +12,6 @@ import type {
 	RecipeParamDefinition,
 	RecipeParamDefinitions,
 } from "@/lib/recipes/recipe-renderer";
-import { LocationSearchField } from "@/components/recipes/location-search-field";
 
 type Props = {
 	slug: string;
@@ -21,6 +22,8 @@ type Props = {
 		params: Record<string, unknown>,
 		definitions?: RecipeParamDefinitions,
 	) => Promise<{ success: boolean; error?: string }>;
+	/** Zone that timezone params fall back to when unset. Resolved server-side. */
+	serverTimeZone?: string;
 };
 
 type FormStatus = "idle" | "success" | "error";
@@ -50,6 +53,7 @@ const renderField = (
 	definition: RecipeParamDefinition,
 	value: unknown,
 	onChange: (key: string, value: unknown) => void,
+	serverTimeZone: string,
 ) => {
 	const commonProps = {
 		id: key,
@@ -79,6 +83,15 @@ const renderField = (
 					onChange={(val) => onChange(key, val)}
 				/>
 			);
+		case "timezone":
+			return (
+				<TimeZoneSelectField
+					id={key}
+					value={value}
+					serverTimeZone={serverTimeZone}
+					onChange={(val) => onChange(key, val)}
+				/>
+			);
 		default:
 			return <Input type="text" {...commonProps} />;
 	}
@@ -89,6 +102,7 @@ export function ScreenParamsForm({
 	paramsSchema,
 	initialValues,
 	updateAction,
+	serverTimeZone = "UTC",
 }: Props) {
 	const [formStatus, setFormStatus] = useState<FormStatus>("idle");
 	const [statusMessage, setStatusMessage] = useState<string>("");
@@ -202,8 +216,12 @@ export function ScreenParamsForm({
 								</span>
 							)}
 						</div>
-						{renderField(key, definition, values[key], (field, val) =>
-							setValues((prev) => ({ ...prev, [field]: val })),
+						{renderField(
+							key,
+							definition,
+							values[key],
+							(field, val) => setValues((prev) => ({ ...prev, [field]: val })),
+							serverTimeZone,
 						)}
 					</div>
 				))}

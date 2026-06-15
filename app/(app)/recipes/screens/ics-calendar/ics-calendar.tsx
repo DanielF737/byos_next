@@ -6,8 +6,9 @@ interface IcsCalendarProps extends Partial<CalendarData> {
 	height?: number;
 }
 
-function formatTime(isoString: string): string {
+function formatTime(isoString: string, timeZone: string): string {
 	return new Date(isoString).toLocaleTimeString("en-US", {
+		timeZone,
 		hour: "numeric",
 		minute: "2-digit",
 		hour12: true,
@@ -44,6 +45,7 @@ export default function IcsCalendar({
 	columns = [],
 	fetchedAt = "",
 	fontSize = "medium",
+	timeZone = "UTC",
 	width = 800,
 	height = 480,
 }: IcsCalendarProps) {
@@ -113,13 +115,13 @@ export default function IcsCalendar({
 															(event, ei) => {
 																const startStr = event.allDay
 																	? null
-																	: formatTime(event.start);
+																	: formatTime(event.start, timeZone);
 																const endStr =
 																	event.allDay ||
 																	!event.end ||
 																	event.start === event.end
 																		? null
-																		: formatTime(event.end);
+																		: formatTime(event.end, timeZone);
 																const isRange =
 																	endStr !== null && endStr !== startStr;
 
@@ -182,7 +184,9 @@ export default function IcsCalendar({
 
 				{fetchedAt && (
 					<div className="bg-black text-white px-2 py-1 flex flex-row justify-end">
-						<span className="text-xs">Updated {fetchedAt}</span>
+						<span className="text-xs">
+							Updated {fetchedAt} · {timeZone}
+						</span>
 					</div>
 				)}
 			</div>

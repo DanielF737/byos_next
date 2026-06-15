@@ -523,6 +523,7 @@ export default async function RecipePage({
 							paramsSchema={paramDefinitions}
 							initialValues={storedValues}
 							updateAction={updateScreenParams}
+							serverTimeZone={Intl.DateTimeFormat().resolvedOptions().timeZone}
 						/>
 					)}
 				</PageTemplate>
@@ -632,6 +633,7 @@ export default async function RecipePage({
 						paramsSchema={config.params}
 						initialValues={screenParams}
 						updateAction={updateScreenParams}
+						serverTimeZone={Intl.DateTimeFormat().resolvedOptions().timeZone}
 					/>
 				)}
 

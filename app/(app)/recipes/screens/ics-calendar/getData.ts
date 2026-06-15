@@ -23,6 +23,7 @@ interface CalendarParams {
 	fontSize?: string;
 	lookAheadDays?: number | string;
 	maxRecurrences?: number | string;
+	timeZone?: string;
 }
 
 export interface CalendarColumn {
@@ -35,6 +36,37 @@ export interface CalendarData {
 	columns: CalendarColumn[];
 	fetchedAt: string;
 	fontSize: string;
+	timeZone: string;
+}
+
+/**
+ * Resolve a configured IANA timezone, falling back to the server's zone when the
+ * value is blank or invalid. Every part of the recipe (range bounds, day
+ * grouping, labels, times) is rendered in this single zone so days stay
+ * consistent.
+ */
+function resolveTimeZone(value: string | undefined): string {
+	const serverZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+	const candidate = value?.trim();
+	if (!candidate) return serverZone;
+	try {
+		// Throws RangeError for an unrecognised timezone.
+		new Intl.DateTimeFormat(undefined, { timeZone: candidate });
+		return candidate;
+	} catch {
+		return serverZone;
+	}
+}
+
+/** Start of "today" in the given timezone, as a UTC-anchored Date. */
+function startOfTodayInZone(timeZone: string): Date {
+	const todayISO = new Intl.DateTimeFormat("en-CA", {
+		timeZone,
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+	}).format(new Date());
+	return new Date(`${todayISO}T00:00:00Z`);
 }
 
 async function fetchAndParseCalendar(
@@ -43,6 +75,7 @@ async function fetchAndParseCalendar(
 	rangeStart: Date,
 	rangeEnd: Date,
 	maxEvents: number,
+	timeZone: string,
 	maxRecurrences?: number,
 ): Promise<CalendarColumn> {
 	try {
@@ -72,7 +105,7 @@ async function fetchAndParseCalendar(
 			name?.trim() || extractCalendarName(icsText) || "Calendar";
 		const allEvents = parseICS(icsText, rangeStart, rangeEnd, maxRecurrences);
 		const events = allEvents.slice(0, maxEvents);
-		const dayGroups = groupEventsByDay(events);
+		const dayGroups = groupEventsByDay(events, timeZone);
 
 		return { name: resolvedName, dayGroups };
 	} catch (err) {
@@ -99,8 +132,10 @@ async function buildCalendarData(
 	);
 	const maxRecurrences = rawMaxRecurrences > 0 ? rawMaxRecurrences : undefined;
 
+	const timeZone = resolveTimeZone(params?.timeZone);
+
 	const now = new Date();
-	const rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+	const rangeStart = startOfTodayInZone(timeZone);
 	const rangeEnd = new Date(
 		rangeStart.getTime() +
 			(lookAheadDays > 0 ? lookAheadDays : 730) * 24 * 60 * 60 * 1000,
@@ -115,12 +150,13 @@ async function buildCalendarData(
 	].filter((e) => e.url.trim().length > 0);
 
 	const fetchedAt = now.toLocaleTimeString("en-US", {
+		timeZone,
 		hour: "2-digit",
 		minute: "2-digit",
 	});
 
 	if (entries.length === 0) {
-		return { columns: [], fetchedAt, fontSize };
+		return { columns: [], fetchedAt, fontSize, timeZone };
 	}
 
 	const columns = await Promise.all(
@@ -131,12 +167,13 @@ async function buildCalendarData(
 				rangeStart,
 				rangeEnd,
 				maxEvents,
+				timeZone,
 				maxRecurrences,
 			),
 		),
 	);
 
-	return { columns, fetchedAt, fontSize };
+	return { columns, fetchedAt, fontSize, timeZone };
 }
 
 const getCachedCalendarData = unstable_cache(

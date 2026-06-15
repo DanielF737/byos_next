@@ -101,12 +101,37 @@ export interface DayGroup {
 	events: CalendarEvent[];
 }
 
-export function groupEventsByDay(events: CalendarEvent[]): DayGroup[] {
+/**
+ * Compute the calendar date (YYYY-MM-DD) an event belongs to.
+ *
+ * All-day events are floating dates: they happen on their literal calendar date
+ * regardless of timezone, so we read the date part of the stored value directly.
+ * Timed events are absolute instants and must be resolved in the viewer's
+ * timezone — bucketing by UTC instead would push evening / early-morning events
+ * onto the wrong day whenever they cross the UTC date boundary.
+ */
+function eventDateISO(event: CalendarEvent, timeZone: string): string {
+	if (event.allDay) {
+		// e.g. "2026-05-16T00:00:00.000Z" -> "2026-05-16"
+		return event.start.slice(0, 10);
+	}
+	// en-CA renders as YYYY-MM-DD, giving an ISO date in the target zone.
+	return new Intl.DateTimeFormat("en-CA", {
+		timeZone,
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+	}).format(new Date(event.start));
+}
+
+export function groupEventsByDay(
+	events: CalendarEvent[],
+	timeZone: string,
+): DayGroup[] {
 	const map = new Map<string, CalendarEvent[]>();
 
 	for (const event of events) {
-		const d = new Date(event.start);
-		const iso = d.toISOString().slice(0, 10);
+		const iso = eventDateISO(event, timeZone);
 		if (!map.has(iso)) map.set(iso, []);
 		map.get(iso)?.push(event);
 	}
@@ -117,6 +142,9 @@ export function groupEventsByDay(events: CalendarEvent[]): DayGroup[] {
 		const d = new Date(`${iso}T00:00:00Z`);
 		const eventYear = Number(iso.slice(0, 4));
 		const options: Intl.DateTimeFormatOptions = {
+			// Render in UTC so the label always matches its bucket key, independent
+			// of the server's process timezone.
+			timeZone: "UTC",
 			weekday: "short",
 			month: "short",
 			day: "numeric",
