@@ -105,7 +105,10 @@ async function fetchAndParseCalendar(
 			name?.trim() || extractCalendarName(icsText) || "Calendar";
 		const allEvents = parseICS(icsText, rangeStart, rangeEnd, maxRecurrences);
 		const events = allEvents.slice(0, maxEvents);
-		const dayGroups = groupEventsByDay(events, timeZone);
+		// rangeStart is start-of-today in the display zone; clip in-progress
+		// events to today-onward so already-past days don't render.
+		const windowStartISO = rangeStart.toISOString().slice(0, 10);
+		const dayGroups = groupEventsByDay(events, timeZone, windowStartISO);
 
 		return { name: resolvedName, dayGroups };
 	} catch (err) {
