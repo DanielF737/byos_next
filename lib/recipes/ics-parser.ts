@@ -9,6 +9,24 @@ export interface CalendarEvent {
 }
 
 /**
+ * Convert an ICAL.Time to an ISO string for storage.
+ *
+ * All-day values (VALUE=DATE) are floating calendar dates. `toJSDate()` would
+ * resolve them against the server's local zone, shifting the date a day in
+ * positive-offset zones. Instead we encode the literal Y-M-D as UTC midnight so
+ * the date part survives `.slice(0, 10)` regardless of server zone.
+ */
+function icalTimeToISO(time: ICAL.Time): string {
+	if (time.isDate) {
+		const y = String(time.year).padStart(4, "0");
+		const m = String(time.month).padStart(2, "0");
+		const d = String(time.day).padStart(2, "0");
+		return `${y}-${m}-${d}T00:00:00.000Z`;
+	}
+	return time.toJSDate().toISOString();
+}
+
+/**
  * Parse raw ICS text and return events within [rangeStart, rangeEnd].
  * Handles recurring events (RRULE) and all-day events.
  * Events are sorted ascending by start time.
@@ -56,8 +74,8 @@ export function parseICS(
 					const occurrence = event.getOccurrenceDetails(next);
 					results.push({
 						title: occurrence.item.summary?.trim() || "Untitled",
-						start: occurrence.startDate.toJSDate().toISOString(),
-						end: occurrence.endDate.toJSDate().toISOString(),
+						start: icalTimeToISO(occurrence.startDate),
+						end: icalTimeToISO(occurrence.endDate),
 						allDay: occurrence.startDate.isDate,
 						description: occurrence.item.description?.trim(),
 					});
@@ -65,14 +83,17 @@ export function parseICS(
 				next = iterator.next();
 			}
 		} else {
-			const startJS = event.startDate.toJSDate();
-			if (startJS >= rangeStart && startJS < rangeEnd) {
+			const startISO = icalTimeToISO(event.startDate);
+			const endISO = event.endDate ? icalTimeToISO(event.endDate) : startISO;
+			const startJS = new Date(startISO);
+			const endJS = new Date(endISO);
+			// Overlap test (not start-in-range): include events that intersect the
+			// window so in-progress multi-day events still appear.
+			if (endJS > rangeStart && startJS < rangeEnd) {
 				results.push({
 					title: event.summary?.trim() || "Untitled",
-					start: event.startDate.toJSDate().toISOString(),
-					end:
-						event.endDate?.toJSDate().toISOString() ??
-						event.startDate.toJSDate().toISOString(),
+					start: startISO,
+					end: endISO,
 					allDay: event.startDate.isDate,
 					description: event.description?.trim(),
 				});
@@ -95,45 +116,96 @@ export function extractCalendarName(icsText: string): string | null {
 /**
  * Group a sorted event list by calendar date string.
  */
+/** One day's occurrence of an event, annotated with its position in the span. */
+export interface DayEvent extends CalendarEvent {
+	dayIndex: number; // 1-based position within the event's full span
+	dayCount: number; // total days the event spans
+}
+
 export interface DayGroup {
 	dateLabel: string; // e.g. "Mon, May 16"
 	dateISO: string; // e.g. "2026-05-16"
-	events: CalendarEvent[];
+	events: DayEvent[];
 }
 
-/**
- * Compute the calendar date (YYYY-MM-DD) an event belongs to.
- *
- * All-day events are floating dates: they happen on their literal calendar date
- * regardless of timezone, so we read the date part of the stored value directly.
- * Timed events are absolute instants and must be resolved in the viewer's
- * timezone — bucketing by UTC instead would push evening / early-morning events
- * onto the wrong day whenever they cross the UTC date boundary.
- */
-function eventDateISO(event: CalendarEvent, timeZone: string): string {
-	if (event.allDay) {
-		// e.g. "2026-05-16T00:00:00.000Z" -> "2026-05-16"
-		return event.start.slice(0, 10);
-	}
-	// en-CA renders as YYYY-MM-DD, giving an ISO date in the target zone.
+/** Add `days` to a YYYY-MM-DD string, returning a YYYY-MM-DD string. */
+function addDaysISO(iso: string, days: number): string {
+	const d = new Date(`${iso}T00:00:00Z`);
+	d.setUTCDate(d.getUTCDate() + days);
+	return d.toISOString().slice(0, 10);
+}
+
+/** Local calendar date (YYYY-MM-DD) of an instant in the given zone. */
+function localDateISO(instant: string, timeZone: string): string {
 	return new Intl.DateTimeFormat("en-CA", {
 		timeZone,
 		year: "numeric",
 		month: "2-digit",
 		day: "2-digit",
-	}).format(new Date(event.start));
+	}).format(new Date(instant));
+}
+
+/** Local time-of-day as HH:mm (24h) of an instant in the given zone. */
+function localTimeHM(instant: string, timeZone: string): string {
+	return new Intl.DateTimeFormat("en-GB", {
+		timeZone,
+		hour: "2-digit",
+		minute: "2-digit",
+		hour12: false,
+	}).format(new Date(instant));
+}
+
+/**
+ * Every local calendar date (YYYY-MM-DD), in order, that an event covers.
+ *
+ * All-day events use literal dates with an exclusive DTEND (so May16->May19
+ * covers 16/17/18). Timed events are resolved per day in the display zone; an
+ * end at exactly local midnight does not extend into that day.
+ */
+function coveredDates(event: CalendarEvent, timeZone: string): string[] {
+	let firstISO: string;
+	let lastISO: string;
+	if (event.allDay) {
+		firstISO = event.start.slice(0, 10);
+		const endExclusive = event.end ? event.end.slice(0, 10) : firstISO;
+		lastISO = addDaysISO(endExclusive, -1);
+		if (lastISO < firstISO) lastISO = firstISO;
+	} else {
+		firstISO = localDateISO(event.start, timeZone);
+		lastISO = event.end ? localDateISO(event.end, timeZone) : firstISO;
+		if (
+			event.end &&
+			lastISO > firstISO &&
+			localTimeHM(event.end, timeZone) === "00:00"
+		) {
+			lastISO = addDaysISO(lastISO, -1);
+		}
+		if (lastISO < firstISO) lastISO = firstISO;
+	}
+	const dates: string[] = [];
+	for (let iso = firstISO; iso <= lastISO; iso = addDaysISO(iso, 1)) {
+		dates.push(iso);
+	}
+	return dates;
 }
 
 export function groupEventsByDay(
 	events: CalendarEvent[],
 	timeZone: string,
+	windowStartISO?: string,
 ): DayGroup[] {
-	const map = new Map<string, CalendarEvent[]>();
+	const map = new Map<string, DayEvent[]>();
 
 	for (const event of events) {
-		const iso = eventDateISO(event, timeZone);
-		if (!map.has(iso)) map.set(iso, []);
-		map.get(iso)?.push(event);
+		const dates = coveredDates(event, timeZone);
+		const dayCount = dates.length;
+		dates.forEach((iso, idx) => {
+			// Clip days before today; keep the true day number across the span.
+			if (windowStartISO && iso < windowStartISO) return;
+			const occ: DayEvent = { ...event, dayIndex: idx + 1, dayCount };
+			if (!map.has(iso)) map.set(iso, []);
+			map.get(iso)?.push(occ);
+		});
 	}
 
 	const currentYear = new Date().getFullYear();

@@ -1,5 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { groupEventsByDay } from "./ics-parser";
+import { groupEventsByDay, parseICS } from "./ics-parser";
+
+const ALLDAY_ICS = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//test//EN
+BEGIN:VEVENT
+UID:single-allday
+SUMMARY:Holiday
+DTSTART;VALUE=DATE:20260516
+DTEND;VALUE=DATE:20260517
+END:VEVENT
+END:VCALENDAR`;
 
 function makeEvent(isoDate: string) {
 	return {
@@ -85,5 +96,116 @@ describe("groupEventsByDay timezone bucketing", () => {
 		// dateISO 2026-05-16 -> label must read May 16, not May 17.
 		expect(groups[0].dateISO).toBe("2026-05-16");
 		expect(groups[0].dateLabel).toContain("May 16");
+	});
+});
+
+describe("parseICS all-day dates", () => {
+	it("preserves the literal all-day date regardless of server timezone", () => {
+		const events = parseICS(
+			ALLDAY_ICS,
+			new Date("2026-01-01T00:00:00Z"),
+			new Date("2027-01-01T00:00:00Z"),
+		);
+		expect(events).toHaveLength(1);
+		expect(events[0].allDay).toBe(true);
+		// Must stay May 16 even when the process zone is UTC+10.
+		expect(events[0].start).toBe("2026-05-16T00:00:00.000Z");
+		expect(events[0].end).toBe("2026-05-17T00:00:00.000Z");
+		expect(groupEventsByDay(events, "Australia/Sydney")[0].dateISO).toBe(
+			"2026-05-16",
+		);
+	});
+
+	it("includes an event already in progress at the window start", () => {
+		// Event May 16-18; window starts May 17. It overlaps, so it must appear.
+		const events = parseICS(
+			`BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//test//EN
+BEGIN:VEVENT
+UID:in-progress
+SUMMARY:Vacation
+DTSTART;VALUE=DATE:20260516
+DTEND;VALUE=DATE:20260519
+END:VEVENT
+END:VCALENDAR`,
+			new Date("2026-05-17T00:00:00Z"),
+			new Date("2026-06-01T00:00:00Z"),
+		);
+		expect(events).toHaveLength(1);
+		expect(events[0].title).toBe("Vacation");
+	});
+});
+
+describe("groupEventsByDay multi-day expansion", () => {
+	const multiAllDay = {
+		title: "Vacation",
+		start: "2026-05-16T00:00:00.000Z",
+		end: "2026-05-19T00:00:00.000Z", // DTEND exclusive -> covers 16,17,18
+		allDay: true,
+	};
+
+	it("expands a multi-day all-day event onto each covered day", () => {
+		const groups = groupEventsByDay([multiAllDay], "UTC");
+		expect(groups.map((g) => g.dateISO)).toEqual([
+			"2026-05-16",
+			"2026-05-17",
+			"2026-05-18",
+		]);
+	});
+
+	it("numbers each spanned day as day N/M of the full span", () => {
+		const groups = groupEventsByDay([multiAllDay], "UTC");
+		expect(groups[0].events[0]).toMatchObject({ dayIndex: 1, dayCount: 3 });
+		expect(groups[1].events[0]).toMatchObject({ dayIndex: 2, dayCount: 3 });
+		expect(groups[2].events[0]).toMatchObject({ dayIndex: 3, dayCount: 3 });
+	});
+
+	it("treats DTEND as exclusive for a single all-day event (dayCount 1)", () => {
+		const single = {
+			title: "Holiday",
+			start: "2026-05-16T00:00:00.000Z",
+			end: "2026-05-17T00:00:00.000Z",
+			allDay: true,
+		};
+		const groups = groupEventsByDay([single], "UTC");
+		expect(groups.map((g) => g.dateISO)).toEqual(["2026-05-16"]);
+		expect(groups[0].events[0]).toMatchObject({ dayIndex: 1, dayCount: 1 });
+	});
+
+	it("clips days before the window start but keeps the true day numbers", () => {
+		// Viewed on May 17: only 17 and 18 show, numbered 2/3 and 3/3.
+		const groups = groupEventsByDay([multiAllDay], "UTC", "2026-05-17");
+		expect(groups.map((g) => g.dateISO)).toEqual(["2026-05-17", "2026-05-18"]);
+		expect(groups[0].events[0]).toMatchObject({ dayIndex: 2, dayCount: 3 });
+		expect(groups[1].events[0]).toMatchObject({ dayIndex: 3, dayCount: 3 });
+	});
+
+	it("expands a timed event spanning days in the display zone", () => {
+		// 8pm May 16 -> 9am May 18 (UTC): covers 16, 17, 18.
+		const timed = {
+			title: "Conference",
+			start: "2026-05-16T20:00:00.000Z",
+			end: "2026-05-18T09:00:00.000Z",
+			allDay: false,
+		};
+		const groups = groupEventsByDay([timed], "UTC");
+		expect(groups.map((g) => g.dateISO)).toEqual([
+			"2026-05-16",
+			"2026-05-17",
+			"2026-05-18",
+		]);
+		expect(groups[2].events[0]).toMatchObject({ dayIndex: 3, dayCount: 3 });
+	});
+
+	it("does not bleed a timed event into a day it ends at local midnight", () => {
+		const timed = {
+			title: "Overnight",
+			start: "2026-05-16T20:00:00.000Z",
+			end: "2026-05-17T00:00:00.000Z", // ends exactly at midnight UTC
+			allDay: false,
+		};
+		const groups = groupEventsByDay([timed], "UTC");
+		expect(groups.map((g) => g.dateISO)).toEqual(["2026-05-16"]);
 	});
 });
