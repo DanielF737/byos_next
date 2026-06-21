@@ -131,7 +131,11 @@ export default function IcsCalendar({
 																		className="text-xs leading-tight"
 																		style={{ paddingTop: "2px" }}
 																	>
-																		{event.allDay ? (
+																		{(event.dayCount ?? 1) > 1 ? (
+																			<span style={{ whiteSpace: "nowrap" }}>
+																				day {event.dayIndex}/{event.dayCount}
+																			</span>
+																		) : event.allDay ? (
 																			<span style={{ whiteSpace: "nowrap" }}>
 																				all day
 																			</span>
