@@ -139,6 +139,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          # Build from the version-bump tag so the image's package.json matches
+          # its image tag; the default checkout would use the pre-bump commit.
+          ref: v${{ needs.release.outputs.release_version }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
